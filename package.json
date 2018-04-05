@@ -1,0 +1,16 @@
+{
+  "name": "line-us",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "svg2gcode": "https://github.com/Meandmybadself/svg2gcode.git",
+    "telnet-client": "^0.15.5"
+  },
+  "devDependencies": {
+    "nodemon": "^1.17.3"
+  },
+  "scripts": {
+    "dev": "nodemon index.js"
+  }
+}
