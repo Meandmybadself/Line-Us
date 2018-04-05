@@ -3,6 +3,8 @@
 const dns = require('dns')
 const Telnet = require('telnet-client')
 
+// The Line-Us runs at 'line-us.local'.
+// Find the IP address (because the telnet client can't resolve string machine names)
 dns.lookup('line-us.local', (err, addresses) => {
   if (err) {
     console.log(err)
@@ -25,7 +27,6 @@ async function connect (host) {
 
   console.log(`Connecting to ${host}`)
   await connection.connect(params)
-  console.log('Connected.')
 
   // let res = await connection.exec('uptime')
   // console.log('async result:', res)
