@@ -9,4 +9,4 @@
 
 * ✅ Resolve IP / connect to Line-Us
 * ✅ Convert SVG2GCode from binary to library
-⬛* ️ Get SVG printing
+* ⬛ ️ Get SVG printing
