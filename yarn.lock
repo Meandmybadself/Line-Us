@@ -2667,9 +2667,9 @@ supports-color@^5.2.0, supports-color@^5.3.0:
   dependencies:
     has-flag "^3.0.0"
 
-"svg2gcode@https://github.com/Meandmybadself/svg2gcode.git":
-  version "0.0.4"
-  resolved "https://github.com/Meandmybadself/svg2gcode.git#17d52604799aa62ebbee62b8f3395bf376e36f61"
+svg2gcode@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/svg2gcode/-/svg2gcode-0.0.5.tgz#c3417300c0b65a46793f99b2db745946b2a029e6"
   dependencies:
     canvg "0.0.6"
     commander "^2.5.0"

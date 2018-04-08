@@ -5,7 +5,7 @@
   "license": "MIT",
   "dependencies": {
     "husky": "^0.14.3",
-    "svg2gcode": "https://github.com/Meandmybadself/svg2gcode.git",
+    "svg2gcode": "^0.0.5",
     "svgo": "^1.0.5",
     "telnet-client": "^0.15.5"
   },
