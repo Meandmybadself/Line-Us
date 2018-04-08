@@ -6,6 +6,7 @@
   "dependencies": {
     "husky": "^0.14.3",
     "svg2gcode": "https://github.com/Meandmybadself/svg2gcode.git",
+    "svgo": "^1.0.5",
     "telnet-client": "^0.15.5"
   },
   "devDependencies": {
