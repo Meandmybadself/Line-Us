@@ -8,5 +8,7 @@
 ## TODOs
 
 * ✅ Resolve IP / connect to Line-Us
-* ✅ Convert SVG2GCode from binary to library
-* ⬛ ️ Get SVG printing
+* ✅ Convert svg to gcode
+* ⬛ ️Send gcode to Line-Us
+* ⬛ ️Scale SVG to fit in all
+* ⬛ ️Get SVG printing
