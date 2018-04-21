@@ -5,6 +5,34 @@ const { exec } = require('child_process')
 const connection = new Telnet()
 let gcode
 
+const LINE_US_BOUNDS = {
+  x: {
+    min: 700,
+    max: 1700
+  },
+  y: {
+    min: -1000,
+    max: 1000
+  }
+}
+
+const LINE_US_WIDTH = LINE_US_BOUNDS.x.max - LINE_US_BOUNDS.x.min
+const LINE_US_HEIGHT = LINE_US_BOUNDS.y.max - LINE_US_BOUNDS.y.min
+
+// const LINE_US_CENTER_X = LINE_US_WIDTH / 2
+// const LINE_US_CENTER_Y = LINE_US_HEIGHT / 2
+
+const bounds = {
+  x: {
+    min: Number.POSITIVE_INFINITY,
+    max: Number.NEGATIVE_INFINITY
+  },
+  y: {
+    min: Number.POSITIVE_INFINITY,
+    max: Number.NEGATIVE_INFINITY
+  }
+}
+
 // connection.on('data', data => { console.log(`data - ${data}`) })
 // connection.on('ready', ready => { console.log(`ready - ${ready}`) })
 connection.on('end', end => { console.log(`end - ${end}`) })
@@ -47,6 +75,25 @@ const convertSVG = svg =>
               const code = match[1]
               // If it's an int, make it an int. Otherwise, make it a float.
               const value = match[2].includes('.') ? parseFloat(match[2]) : parseInt(match[2])
+
+              // Construct bounds.
+              switch (code) {
+                case 'X':
+                  if (value < bounds.x.min) {
+                    bounds.x.min = value
+                  } else if (value > bounds.x.max) {
+                    bounds.x.max = value
+                  }
+                  break
+                case 'Y':
+                  if (value < bounds.y.min) {
+                    bounds.y.min = value
+                  } else if (value > bounds.y.max) {
+                    bounds.y.max = value
+                  }
+                  break
+              }
+
               return {
                 [code]: value
               }
@@ -57,18 +104,72 @@ const convertSVG = svg =>
         .map(line => { // Condense all objects in line into one object.
           let obj = {}
           line.forEach(o2 => {
-            obj = {...obj, ...o2}
+            obj = { ...obj, ...o2 }
           })
           return obj
         })
+
+        //
+      // console.log('bounds', bounds)
+
       return resolve(gcode)
     })
   })
 
-// // Manipulates gcode to fit within the line-us printable boundaries.
-// const processGCode = gcode => {
-//   //
-// }
+// Manipulates gcode to fit within the line-us printable boundaries.
+const processGCode = gcode => {
+  const drawingWidth = bounds.x.max - bounds.x.min
+  const drawingHeight = bounds.y.max - bounds.y.min
+
+  // Which side of the image greater exceeds the bounds?
+  let xScaleDiff = drawingWidth / LINE_US_WIDTH
+  let yScaleDiff = drawingHeight / LINE_US_HEIGHT
+
+  // Take the larger of the two & use that as the drawing's new inverse scale.
+  let targetScale = 1 / (xScaleDiff > yScaleDiff ? xScaleDiff : yScaleDiff)
+
+  // Go through all the points & scale.
+  gcode = gcode.map(obj => {
+    if (obj.X) { obj.X *= targetScale }
+    if (obj.Y) { obj.Y *= targetScale }
+    return obj
+  })
+
+  // Scale the old bounds to their new size.
+  bounds.x.min *= targetScale
+  bounds.x.max *= targetScale
+  bounds.y.min *= targetScale
+  bounds.y.max *= targetScale
+
+  // Now, center the drawing within the bounds.
+  let drawingCenter = getCenterPoint(bounds)
+  let boundsCenter = getCenterPoint(LINE_US_BOUNDS)
+  let centerDiffX = boundsCenter.x - drawingCenter.x
+  let centerDiffY = boundsCenter.y - drawingCenter.y
+
+  // Go through all points & adjust to center.
+  gcode = gcode.map(obj => {
+    if (obj.X) { obj.X += centerDiffX }
+    if (obj.Y) { obj.Y += centerDiffY }
+
+    return obj
+  })
+
+  // Adjust the bounds (this doesn't really have any functional purpose)
+  bounds.x.min += centerDiffX
+  bounds.x.max += centerDiffX
+  bounds.y.min += centerDiffY
+  bounds.y.max += centerDiffY
+
+  return gcode
+}
+
+const getCenterPoint = rect => {
+  return {
+    x: ((rect.x.max - rect.x.min) / 2) + rect.x.min,
+    y: ((rect.y.max - rect.y.min) / 2) + rect.y.min
+  }
+}
 
 const obj2GCode = obj => {
   return Object.keys(obj).map(key => `${key}${obj[key]}`).join(' ').replace('G1', 'G01')
@@ -106,7 +207,9 @@ if (!fs.existsSync(svgPath)) {
       convertSVG(cleanedSVG.trim())
         .then(g => {
           console.log('Converted SVG.')
-          gcode = g
+
+          // Process GCode to fit within line-us bounds.
+          gcode = processGCode(g)
 
           // The Line-Us runs at 'line-us.local'.
           // Find the IP address (because the telnet client can't resolve string machine names)

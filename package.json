@@ -18,6 +18,7 @@
   "scripts": {
     "start": "node index.js ./test-svg/logo.svg",
     "dev": "nodemon index.js ./test-svg/logo.svg",
-    "precommit": "standard"
+    "precommit": "standard",
+    "fix": "standard --fix"
   }
 }
