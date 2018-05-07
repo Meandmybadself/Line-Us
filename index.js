@@ -6,6 +6,7 @@ const MathUtils = require('./lib/MathUtils')
 const connection = new Telnet()
 let gcode
 
+// Set up application drawing bounds.
 const LINE_US_BOUNDS = {
   x: {
     min: 700,
@@ -20,6 +21,7 @@ const LINE_US_BOUNDS = {
 const LINE_US_WIDTH = LINE_US_BOUNDS.x.max - LINE_US_BOUNDS.x.min
 const LINE_US_HEIGHT = LINE_US_BOUNDS.y.max - LINE_US_BOUNDS.y.min
 
+// Check if the user supplied an SVG.
 if (process.argv.length < 3) {
   console.log(`Usage: node index.js PATH_TO_SVG`)
   process.exit(1)
@@ -67,7 +69,7 @@ const processGCode = gcode => {
   // // Adjust the bounds (this doesn't really have any functional purpose)
   // bounds = transformRect(bounds, centerDiffX, centerDiffY)
 
-  console.log('Cleaning up points.')
+  console.log('Reducing close points.')
   // Go through & remove points that are very close to each other.
   let prevGCode
   for (var i = gcode.length; i > -1; i--) {
@@ -91,7 +93,7 @@ const processGCode = gcode => {
 const sendGCode = () => {
   if (gcode.length) {
     let step = SVGUtils.obj2GCode(gcode.shift())
-    console.log(`sending ${step}\0`)
+    process.stdout.write(`Sending ${step}....`)
     connection.send(`${step}\0`,
       {
         shellPrompt: /(.+)\0/, // If this isn't right, we either don't get a response, or an empty response.
@@ -99,8 +101,7 @@ const sendGCode = () => {
         timeout: 5000
       })
       .then((rsp) => {
-        console.log('+', rsp)
-        process.stdout.write(`${gcode.length}|`)
+        process.stdout.write(`${rsp}`)
         setTimeout(() => {
           sendGCode()
         }, 1)
