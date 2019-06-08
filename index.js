@@ -10,12 +10,12 @@ let gcode
 const LINE_US_BOUNDS = {
   x: {
     min: 700,
-    max: 1700
+    max: 1700,
   },
   y: {
     min: -1000,
-    max: 1000
-  }
+    max: 1000,
+  },
 }
 
 const LINE_US_WIDTH = LINE_US_BOUNDS.x.max - LINE_US_BOUNDS.x.min
@@ -77,7 +77,8 @@ const processGCode = gcode => {
     if (prevGCode) {
       let dist = MathUtils.distance(currentGCode, prevGCode)
       // console.log(i, dist)
-      if (dist < 10) { // 10mm
+      if (dist < 10) {
+        // 10mm
         // Remove.
         gcode.splice(i, 1)
         continue // Don't set prevGCode, as we removed it.
@@ -94,13 +95,13 @@ const sendGCode = () => {
   if (gcode.length) {
     let step = SVGUtils.obj2GCode(gcode.shift())
     process.stdout.write(`Sending ${step}....`)
-    connection.send(`${step}\0`,
-      {
+    connection
+      .send(`${step}\0`, {
         shellPrompt: /(.+)\0/, // If this isn't right, we either don't get a response, or an empty response.
         stripShellPrompt: false,
-        timeout: 5000
+        timeout: 5000,
       })
-      .then((rsp) => {
+      .then(rsp => {
         process.stdout.write(`${rsp}`)
         setTimeout(() => {
           sendGCode()
@@ -118,7 +119,7 @@ if (!fs.existsSync(svgPath)) {
   console.log(`Could not locate an SVG at ${svgPath}`)
   process.exit(1)
 } else {
-  (async () => {
+  ;(async () => {
     // Convert SVG into an array of GCode objects.
     // We need these in a numeric format to scale them.
     gcode = await SVGUtils.traceSVGFile(svgPath)
@@ -126,21 +127,19 @@ if (!fs.existsSync(svgPath)) {
     // Scale to best fit the machine's drawing bounds.
     gcode = processGCode(gcode)
 
-    dns.lookup('line-us.local', (err, addresses) => {
+    const [err, addresses] = await dns.lookup('line-us.local', async (err, addresses) => {
       if (err) {
         console.log(err)
         process.exit()
       }
       console.log(`Resolved IP to ${addresses}`)
-      connection.connect({
+      await connection.connect({
         host: addresses,
         port: 1337,
-        shellPrompt: /([^\r]+\r\n\0)/
+        shellPrompt: /([^\r]+\r\n\0)/,
       })
-        .then(prompt => {
-          console.log(`Connected.`)
-          sendGCode()
-        })
+      console.log(`Connected.`)
+      sendGCode()
     })
   })()
 }
