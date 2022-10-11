@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "canvg": "^1.5.3",
+    "canvg": "^4.0.1",
     "commander": "^2.20.0",
     "extract-svg-path": "^2.1.0",
     "gcanvas": "^0.0.37",
